@@ -51,7 +51,7 @@ async function pausePlayCurrent(token, device_id, isPlaying) {
         },
     })
 
-    return result.status === 204 ? result.text() : await result.json()
+    return result.status === 204 ? await result.text() : await result.json()
 }
 
 async function skipCurrent(token, device_id, method) {
@@ -63,7 +63,7 @@ async function skipCurrent(token, device_id, method) {
         },
     })
 
-    return result.status === 204 ? result.text() : await result.json()
+    return result.status === 204 ? await result.text() : await result.json()
 }
 
 async function getCurrentStatus(token) {

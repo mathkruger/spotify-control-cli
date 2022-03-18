@@ -67,7 +67,7 @@ function exit() {
     process.exit(0)
 }
 
-async function showSpotifyOptions() {
+async function showSpotifyOptions(withError = false) {
     console.clear();
     const isLoggedIn = token != null;
 
@@ -89,7 +89,10 @@ async function showSpotifyOptions() {
 ------------------------------------`
 
     console.log(title)
-    if (isLoggedIn) {
+
+    if (withError) console.log(`Aconteceu um erro na sua última ação, tente novamente`)
+
+    if (isLoggedIn && currentStatus.item) {
         console.log(`
 Tocando agora:
     `   )
@@ -109,29 +112,33 @@ Tocando agora:
         }
     ])
 
-    if (selected.menu == 'sair') {
-        return exit()
-    }
-
-    if (!isLoggedIn) {
-        if (selected.menu == 'logar_com_sua_conta_spotify') {
-            return await loginProcess()
+    try {
+        if (selected.menu == 'sair') {
+            return exit()
         }
-    } else {
-        if (selected.menu == 'escolher_dispositivo') {
-            return await chooseDevice()
+    
+        if (!isLoggedIn) {
+            if (selected.menu == 'logar_com_sua_conta_spotify') {
+                return await loginProcess()
+            }
+        } else {
+            if (selected.menu == 'escolher_dispositivo') {
+                return await chooseDevice()
+            }
+    
+            if (selected.menu == 'pausar' || selected.menu == 'continuar') {
+                return await pausePlay()
+            }
+    
+            if (selected.menu == 'próxima') {
+                return await skipMusic('next')
+            }
+    
+            if (selected.menu == 'anterior') {
+                return await skipMusic('previous')
+            }
         }
-
-        if (selected.menu == 'pausar' || selected.menu == 'continuar') {
-            return await pausePlay()
-        }
-
-        if (selected.menu == 'próxima') {
-            return await skipMusic('next')
-        }
-
-        if (selected.menu == 'anterior') {
-            return await skipMusic('previous')
-        }
+    } catch (error) {
+        await showSpotifyOptions(true)
     }
 }
