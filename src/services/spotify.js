@@ -54,6 +54,18 @@ async function pausePlayCurrent(token, device_id, isPlaying) {
     return result.status === 204 ? result.text() : await result.json()
 }
 
+async function skipCurrent(token, device_id, method) {
+    const result = await fetch(`https://api.spotify.com/v1/me/player/${method}?device_id=${device_id}`, {
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + token.access_token,
+            'Content-Type': 'application/json'
+        },
+    })
+
+    return result.status === 204 ? result.text() : await result.json()
+}
+
 async function getCurrentStatus(token) {
     const result = await fetch(`https://api.spotify.com/v1/me/player`, {
         method: 'GET',
@@ -71,5 +83,6 @@ export {
     getToken,
     listActiveDevices,
     pausePlayCurrent,
-    getCurrentStatus
+    getCurrentStatus,
+    skipCurrent
 }

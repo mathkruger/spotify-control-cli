@@ -1,6 +1,12 @@
 import 'dotenv/config';
 import { app } from "./services/auth-service.js"
-import { callTokenRequest, listActiveDevices, pausePlayCurrent, getCurrentStatus } from './services/spotify.js'
+import {
+    callTokenRequest,
+    listActiveDevices,
+    pausePlayCurrent,
+    getCurrentStatus,
+    skipCurrent
+} from './services/spotify.js'
 import { askQuestions } from './utils/console-input.js';
 
 let activeDevice = null
@@ -47,6 +53,11 @@ async function chooseDevice() {
 async function pausePlay() {
     await pausePlayCurrent(token, activeDevice, isPlaying)
     isPlaying = !isPlaying
+    showSpotifyOptions()
+}
+
+async function skipMusic(method) {
+    await skipCurrent(token, activeDevice, method)
     showSpotifyOptions()
 }
 
@@ -113,6 +124,14 @@ Tocando agora:
 
         if (selected.menu == 'pausar' || selected.menu == 'continuar') {
             return await pausePlay()
+        }
+
+        if (selected.menu == 'próxima') {
+            return await skipMusic('next')
+        }
+
+        if (selected.menu == 'anterior') {
+            return await skipMusic('previous')
         }
     }
 }
