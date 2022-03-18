@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
 import { eventEmitter, eventNames } from './events.js'
 
-async function callTokenRequest() {
+async function callTokenRequest(onTokenReceived) {
     let login_url = process.env.SPOTIFY_LOGIN_URL
     await fetch(login_url)
     
@@ -9,6 +9,8 @@ async function callTokenRequest() {
         const response = await getToken(params.code)
         eventEmitter.emit(eventNames.TOKEN_RECEIVED, response)
     })
+
+    eventEmitter.on(eventNames.TOKEN_RECEIVED, onTokenReceived)
 }
 
 async function getToken(code) {

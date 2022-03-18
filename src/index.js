@@ -1,86 +1,118 @@
 import 'dotenv/config';
-import readline from 'readline'
-import { eventEmitter, eventNames } from './services/events.js'
 import { app } from "./services/auth-service.js"
 import { callTokenRequest, listActiveDevices, pausePlayCurrent, getCurrentStatus } from './services/spotify.js'
+import { askQuestions } from './utils/console-input.js';
 
 let activeDevice = null
 let token = null
 let server = null
 let isPlaying = false
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    terminal: false
-})
+let currentStatus = null
 
-showSpotifyOptions(false)
+showSpotifyOptions()
 
 async function loginProcess() {
     server = app.listen(8888)
 
-    callTokenRequest()
-
-    eventEmitter.on(eventNames.TOKEN_RECEIVED, async (params) => {
-        token = params
-        const currentStatus = await getCurrentStatus(token)
-        isPlaying = currentStatus.isPlaying
-        if (currentStatus.device) {
-            activeDevice = currentStatus.device.id
-        }
-        showSpotifyOptions(token)
+    callTokenRequest(async (received) => {
+        token = received
+        showSpotifyOptions()
     })
+}
+
+async function getPlayerStatus() {
+    currentStatus = await getCurrentStatus(token)
+
+    isPlaying = currentStatus.is_playing
+    if (currentStatus.device) {
+        activeDevice = currentStatus.device.id
+    }
 }
 
 async function chooseDevice() {
     const response = await listActiveDevices(token)
-    activeDevice = response.devices[0].id
-    showSpotifyOptions(token)
+    const selected = await askQuestions([
+        {
+            type: "list",
+            name: "device",
+            message: "Escolha um dispositivo para controlar",
+            choices: response.devices.map(x => x.name)
+        }
+    ])
+
+    activeDevice = response.devices.find(x => x.name == selected.device).id
+    showSpotifyOptions()
 }
 
 async function pausePlay() {
     await pausePlayCurrent(token, activeDevice, isPlaying)
     isPlaying = !isPlaying
-    showSpotifyOptions(token)
+    showSpotifyOptions()
 }
 
 function exit() {
-    server.close()
+    console.clear()
+    if (server) server.close()
     process.exit(0)
 }
 
-function showSpotifyOptions(isLoggedIn = true) {
-    const options = isLoggedIn ? `
-    1 - Escolher dispositivo
-    2 - Pausar/Continuar
-    3 - Próxima
-    4 - Anterior
-    0 - Sair
-    ` : `
-    1 - Entrar
-    0 - Sair
-    `
+async function showSpotifyOptions() {
+    console.clear();
+    const isLoggedIn = token != null;
 
-    rl.question('O que deseja fazer?' + options, async option => {
-        if (option == 0) {
-            return exit()
+    if (isLoggedIn) await getPlayerStatus()
+
+    const options = isLoggedIn ? [
+        'Escolher dispositivo',
+        isPlaying ? 'Pausar' : 'Continuar',
+        'Próxima',
+        'Anterior',
+        'Sair'
+    ] : [
+        'Logar com sua conta spotify',
+        'Sair'
+    ]
+
+    const title = `
+            Spoti CLI
+------------------------------------`
+
+    console.log(title)
+    if (isLoggedIn) {
+        console.log(`
+Tocando agora:
+    `   )
+        console.log(currentStatus.item.name + ' (' + currentStatus.item.album.name + ') - ' + currentStatus.item.artists[0].name)
+        console.log('')
+    }
+
+    const selected = await askQuestions([
+        {
+            type: "list",
+            name: "menu",
+            message: "O que deseja fazer?",
+            choices: options,
+            filter(val) {
+                return val.toLowerCase().replace(/ /g, '_')
+            }
+        }
+    ])
+
+    if (selected.menu == 'sair') {
+        return exit()
+    }
+
+    if (!isLoggedIn) {
+        if (selected.menu == 'logar_com_sua_conta_spotify') {
+            return await loginProcess()
+        }
+    } else {
+        if (selected.menu == 'escolher_dispositivo') {
+            return await chooseDevice()
         }
 
-        if (!isLoggedIn) {
-            if (option == 1) {
-                return await loginProcess()
-            }
-        } else {
-            if (option == 1) {
-                return await chooseDevice()
-            }
-
-            if (option == 2) {
-                return await pausePlay()
-            }
+        if (selected.menu == 'pausar' || selected.menu == 'continuar') {
+            return await pausePlay()
         }
-
-        rl.close();
-    })
-
+    }
 }
