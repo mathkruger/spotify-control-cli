@@ -5,7 +5,8 @@ import {
     listActiveDevices,
     pausePlayCurrent,
     getCurrentStatus,
-    skipCurrent
+    skipCurrent,
+    setVolume
 } from './services/spotify.js'
 
 import { askQuestions } from './utils/console-input.js';
@@ -74,6 +75,26 @@ async function skipMusic(method) {
     showSpotifyOptions()
 }
 
+async function changeVolume(method) {
+    const currentVolume = currentStatus.device.volume_percent
+    let nextVolume = 0
+    switch (method) {
+        default:
+        case 'plus':
+            nextVolume = currentVolume + 5
+        break
+
+        case 'minus':
+            nextVolume = currentVolume - 5 
+        break
+    }
+
+    await setVolume(token, activeDevice, nextVolume)
+    await getPlayerStatus()
+
+    showSpotifyOptions()
+}
+
 function exit() {
     console.clear()
     if (server) server.close()
@@ -91,6 +112,8 @@ async function showSpotifyOptions(withError = false) {
         isPlaying ? 'Pausar' : 'Continuar',
         'Próxima',
         'Anterior',
+        'Aumentar volume',
+        'Diminuir volume',
         'Sair'
     ] : [
         'Logar com sua conta spotify',
@@ -149,6 +172,14 @@ Tocando agora:
     
             if (selected.menu == 'anterior') {
                 return await skipMusic('previous')
+            }
+
+            if (selected.menu == 'aumentar_volume') {
+                return await changeVolume('plus')
+            }
+
+            if (selected.menu == 'diminuir_volume') {
+                return await changeVolume('minus')
             }
         }
     } catch (error) {
