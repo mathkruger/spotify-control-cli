@@ -6,7 +6,7 @@
   "bin": "./src/index.js",
   "type": "module",
   "scripts": {
-    "init": "cp .example.env .env",
+    "init": "cp .example.env .env && touch cache.json",
     "start": "node src/index.js",
     "watch": "nodemon src/index.js"
   },
