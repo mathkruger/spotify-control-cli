@@ -7,7 +7,14 @@ import {
     getCurrentStatus,
     skipCurrent
 } from './services/spotify.js'
+
 import { askQuestions } from './utils/console-input.js';
+import {
+    readCache,
+    saveCache
+} from './utils/cache-manager.js';
+
+const SERVER_PORT = process.env.PORT
 
 let activeDevice = null
 let token = null
@@ -15,13 +22,19 @@ let server = null
 let isPlaying = false
 let currentStatus = null
 
-showSpotifyOptions()
+init()
+
+function init() {
+    token = readCache()
+    showSpotifyOptions()
+}
 
 async function loginProcess() {
-    server = app.listen(8888)
+    server = app.listen(SERVER_PORT)
 
     callTokenRequest(async (received) => {
         token = received
+        saveCache(token)
         showSpotifyOptions()
     })
 }
