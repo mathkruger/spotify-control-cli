@@ -27,7 +27,31 @@ async function getToken(code) {
         body: `grant_type=authorization_code&code=${code}&redirect_uri=${redirect_uri}`
     })
 
-    return await result.json()
+    const token = await result.json()
+    token.expiration_date = generateExpirationDate(token.expires_in)
+
+    return token
+}
+
+async function getRefreshedToken(refresh_token) {
+    const client_id = process.env.SPOTIFY_CLIENT_ID
+    const client_secret = process.env.SPOTIFY_CLIENT_SECRET
+    const redirect_uri = process.env.SPOTIFY_REDIRECT_URL
+
+    const result = await fetch('https://accounts.spotify.com/api/token', {
+        method: 'POST',
+        headers: {
+            'Authorization': 'Basic ' + (Buffer.from(client_id + ':' + client_secret).toString('base64')),
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `grant_type=refresh_token&refresh_token=${refresh_token}`
+    })
+
+    const token = await result.json()
+    console.log(token)
+    token.expiration_date = generateExpirationDate(token.expires_in)
+
+    return token
 }
 
 async function listActiveDevices(token) {
@@ -90,9 +114,17 @@ async function getCurrentStatus(token) {
     return result.status === 204 ? { isPlaying: false } : await result.json()
 }
 
+function generateExpirationDate(expires_in) {
+    const date = new Date()
+    const newHour = date.getHours() + (expires_in / 60 / 60)
+    date.setHours(newHour + ((date.getTimezoneOffset() / 60) * -1))
+    return date
+}
+
 export {
     callTokenRequest,
     getToken,
+    getRefreshedToken,
     listActiveDevices,
     pausePlayCurrent,
     getCurrentStatus,

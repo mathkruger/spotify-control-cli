@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { app } from "./services/auth-service.js"
 import {
     callTokenRequest,
+    getRefreshedToken,
     listActiveDevices,
     pausePlayCurrent,
     getCurrentStatus,
@@ -25,8 +26,19 @@ let currentStatus = null
 
 init()
 
-function init() {
+async function init() {
     token = readCache()
+
+    if (token) {
+        token.expiration_date = new Date(token.expiration_date)
+        const now = new Date()
+
+        if (token.expiration_date < now) {
+            token = await getRefreshedToken(token.refresh_token)
+            saveCache(token)
+        }
+    }
+
     showSpotifyOptions()
 }
 
@@ -101,7 +113,7 @@ function exit() {
     process.exit(0)
 }
 
-async function showSpotifyOptions(withError = false) {
+async function showSpotifyOptions(error = null) {
     console.clear();
     const isLoggedIn = token != null;
 
@@ -126,7 +138,7 @@ async function showSpotifyOptions(withError = false) {
 
     console.log(title)
 
-    if (withError) console.log(`Aconteceu um erro na sua última ação, tente novamente`)
+    if (error) console.log(`Aconteceu um erro na sua última ação, tente novamente: ${error}`)
 
     if (isLoggedIn && currentStatus.item) {
         console.log(`
@@ -183,6 +195,6 @@ Tocando agora:
             }
         }
     } catch (error) {
-        await showSpotifyOptions(true)
+        await showSpotifyOptions(error)
     }
 }
