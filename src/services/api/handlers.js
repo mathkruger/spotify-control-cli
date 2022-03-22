@@ -1,8 +1,6 @@
-import express from 'express'
 import open from 'open';
-import { eventEmitter, eventNames } from './events.js'
+import { eventEmitter, eventNames } from '../../utils/events.js'
 
-const app = express();
 const client_id = process.env.SPOTIFY_CLIENT_ID;
 const redirect_uri = process.env.SPOTIFY_REDIRECT_URL;
 
@@ -16,7 +14,7 @@ function generateRandomString(length) {
     return text
 }
 
-app.get('/login', async function (req, res) {
+async function loginHandler(req, res) {
     const state = generateRandomString(16)
     const scope = 'user-read-private user-read-email user-read-playback-state user-modify-playback-state user-read-currently-playing'
 
@@ -31,17 +29,17 @@ app.get('/login', async function (req, res) {
 
     open(url)    
     res.sendStatus(200)
-})
+}
 
-app.get('/callback', async function (req, res) {
+async function callbackHandler(req, res) {
     const code = req.query.code || null
     const state = req.query.state || null
 
     eventEmitter.emit(eventNames.CODE_RECEIVED, {code, state})
     res.send("<script>window.close()</script>")
-})
-
+}
 
 export {
-    app
+    loginHandler,
+    callbackHandler
 }
