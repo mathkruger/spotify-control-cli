@@ -9,6 +9,11 @@ import {
     getCachedTokenOrRefresh,
     skipMusic
 } from './spotify-controller.js'
+import {
+    drawLine,
+    drawText,
+    drawCenteredText
+} from '../utils/console.js'
 
 let token = null
 let isPlaying = null
@@ -51,21 +56,18 @@ async function showMenu(error = null) {
         'Sair'
     ]
 
-    const title = `
-            Spoti CLI
-------------------------------------`
+    drawLine(false, 'green', 'bgBlack')
+    drawCenteredText(' ', 'bgBlack')
+    drawCenteredText('Spoti CLI', 'green', 'bold', 'bgBlack')
+    drawCenteredText(' ', 'bgBlack')
+    drawLine(false, 'green', 'bgBlack')
 
-    console.log(title)
-
-    if (error) console.log(`Aconteceu um erro na sua última ação, tente novamente: ${error}`)
+    if (error) drawText(`Aconteceu um erro na sua última ação, tente novamente: ${error}`)
 
     if (isLoggedIn && currentStatus.item) {
-        console.log(`
-Tocando agora:
-    `   )
-        console.log(currentStatus.item.name + ' (' + currentStatus.item.album.name + ') - ' + currentStatus.item.artists[0].name)
-        console.log('')
-        console.log('------------------------------------')
+        drawText('Tocando agora:', 'dim')
+        drawText(currentStatus.item.name + ' (' + currentStatus.item.album.name + ') - ' + currentStatus.item.artists[0].name, 'bgGray')
+        drawLine(false, 'dim')
     }
 
     const selected = await askQuestions([
