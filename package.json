@@ -9,6 +9,7 @@
     "init": "cp .example.env .env && touch cache.json",
     "clean-cache": "rm cache.json && touch cache.json",
     "start": "node src/index.js",
+    "start:twitch": "node src/index.js twitch",
     "watch": "nodemon src/index.js",
     "test": "jest"
   },
@@ -20,7 +21,8 @@
     "express": "^4.17.3",
     "inquirer": "^8.2.1",
     "node-fetch": "^3.2.3",
-    "open": "^8.4.0"
+    "open": "^8.4.0",
+    "tmi.js": "^1.8.5"
   },
   "devDependencies": {
     "jest": "^27.5.1",

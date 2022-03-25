@@ -5,7 +5,9 @@ import {
     getCurrentStatus,
     skipCurrent,
     setVolume,
-    getRefreshedToken
+    getRefreshedToken,
+    search,
+    playContent
 } from '../services/spotify-service.js'
 import { app } from "../services/api/routes.js"
 import { saveCache, readCache } from '../utils/cache-manager.js'
@@ -107,6 +109,14 @@ async function changeVolume(method) {
     await getPlayerStatus()
 }
 
+async function searchAndPlayContent(searchTerm) {
+    const searchResult = await search(token, searchTerm)
+    if (searchResult.tracks && searchResult.tracks.items && searchResult.tracks.items.length > 0) {
+        const track = searchResult.tracks.items[0].uri
+        await playContent(token, activeDevice, track)
+    }
+}
+
 export {
     loginProcess,
     getPlayerStatus,
@@ -114,5 +124,6 @@ export {
     pausePlay,
     changeVolume,
     getCachedTokenOrRefresh,
-    skipMusic
+    skipMusic,
+    searchAndPlayContent
 }

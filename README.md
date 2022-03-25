@@ -7,6 +7,9 @@ Um controle remoto para spotify, em linha de comando.
 - [x] ~~Implementar refresh token~~
 - [x] ~~Refatorar boa parte do código~~
 - [x] ~~Melhorar interface do console~~
+- [x] ~~Criar bot na twitch pra trocar de música~~
+- [x] ~~Implementar modo de busca de música rápida~~
+
+## Roadmap pra quando eu estiver com vontade
 - [ ] Criar testes unitários (Jest)
 - [ ] Colocar num container
-- [ ] Criar bot na twitch pra trocar de música

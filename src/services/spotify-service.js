@@ -76,6 +76,21 @@ async function pausePlayCurrent(token, device_id, isPlaying) {
     return result.status === 204 ? await result.text() : await result.json()
 }
 
+async function playContent(token, device_id, context_uri) {
+    const result = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${device_id}`, {
+        method: 'PUT',
+        headers: {
+            'Authorization': 'Bearer ' + token.access_token,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            uris: [context_uri]
+        })
+    })
+
+    return result.status === 204 ? await result.text() : await result.json()
+}
+
 async function skipCurrent(token, device_id, method) {
     const result = await fetch(`https://api.spotify.com/v1/me/player/${method}?device_id=${device_id}`, {
         method: 'POST',
@@ -112,6 +127,18 @@ async function getCurrentStatus(token) {
     return result.status === 204 ? { isPlaying: false } : await result.json()
 }
 
+async function search(token, term) {
+    const result = await fetch(`https://api.spotify.com/v1/search?limit=1&type=track&q=${term}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token.access_token,
+            'Content-Type': 'application/json'
+        },
+    })
+
+    return result.status === 200 ? await result.json() : await result.text()
+}
+
 function generateExpirationDate(expires_in = 0) {
     const date = new Date()
     const newHour = date.getHours() + (expires_in / 60 / 60)
@@ -127,5 +154,7 @@ export {
     pausePlayCurrent,
     getCurrentStatus,
     skipCurrent,
-    setVolume
+    setVolume,
+    playContent,
+    search
 }

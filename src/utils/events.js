@@ -5,7 +5,8 @@ const eventNames = {
     TOKEN_RECEIVED: 'token_received',
     ACTIVE_DEVICE_CHANGED: 'active_device_changed',
     PLAYER_STATUS_CHANGED: 'player_status_changed',
-    IS_PLAYING_CHANGED: 'is_playing_changed'
+    IS_PLAYING_CHANGED: 'is_playing_changed',
+    COMMAND_RECEIVED: 'command_received'
 }
 export {
     eventEmitter,

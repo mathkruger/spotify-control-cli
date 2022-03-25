@@ -7,19 +7,21 @@ import {
     pausePlay,
     changeVolume,
     getCachedTokenOrRefresh,
-    skipMusic
+    skipMusic,
+    searchAndPlayContent
 } from './spotify-controller.js'
 import {
     drawLine,
     drawText,
     drawCenteredText
 } from '../utils/console.js'
+import { generateBotClient } from '../services/twitch-service.js'
 
 let token = null
 let isPlaying = null
 let currentStatus = null
 
-async function initializeApplication() {
+async function initializeApplication(twitchBotMode = false) {
     token = await getCachedTokenOrRefresh()
 
     eventEmitter.on(eventNames.TOKEN_RECEIVED, (newStatus) => {
@@ -34,7 +36,27 @@ async function initializeApplication() {
         isPlaying = newStatus
     })
 
-    showMenu()
+    if (twitchBotMode) {
+        const isLoggedIn = token != null;
+        if (isLoggedIn) {
+            await getPlayerStatus()
+            
+            generateBotClient()
+
+            eventEmitter.on(eventNames.COMMAND_RECEIVED, async (command) => {
+                drawText('Você recebeu o comando ' + command, 'green', 'bold')
+                const commandSplitted = command.includes('|') ? command.split('|') : [command]
+                await callSpotifyAction(commandSplitted[0], isLoggedIn, commandSplitted[1])
+            })
+        }
+        else {
+            console.log('Entre no modo convencional, faça login, e volte aqui.')
+        }
+
+    }
+    else {
+        showMenu()
+    }
 }
 
 async function showMenu(error = null) {
@@ -45,6 +67,7 @@ async function showMenu(error = null) {
 
     const options = isLoggedIn ? [
         'Escolher dispositivo',
+        'Trocar de música',
         isPlaying ? 'Pausar' : 'Continuar',
         'Próxima',
         'Anterior',
@@ -83,45 +106,65 @@ async function showMenu(error = null) {
     ])
 
     try {
-        if (selected.menu == 'sair') {
-            return closeApplication()
-        }
-    
-        if (!isLoggedIn) {
-            if (selected.menu == 'logar_com_sua_conta_spotify') {
-                return await loginProcess(showMenu)
-            }
-        } else {
-            if (selected.menu == 'escolher_dispositivo') {
-                await chooseDevice()
-            }
-    
-            if (selected.menu == 'pausar' || selected.menu == 'continuar') {
-                await pausePlay()
-            }
-    
-            if (selected.menu == 'próxima') {
-                await skipMusic('next')
-            }
-    
-            if (selected.menu == 'anterior') {
-                await skipMusic('previous')
-            }
-
-            if (selected.menu == 'aumentar_volume') {
-                await changeVolume('plus')
-            }
-
-            if (selected.menu == 'diminuir_volume') {
-                await changeVolume('minus')
-            }
-        }
-
+        await callSpotifyAction(selected.menu, isLoggedIn)
         await showMenu()
     } catch (error) {
         await showMenu(error)
     }
 }
+
+async function callSpotifyAction(action, isLoggedIn, args = null) {
+    if (action == 'sair') {
+        return closeApplication()
+    }
+
+    if (!isLoggedIn) {
+        if (action == 'logar_com_sua_conta_spotify') {
+            return await loginProcess(showMenu)
+        }
+    } else {
+        if (action == 'escolher_dispositivo') {
+            await chooseDevice()
+        }
+
+        if (action == 'trocar_de_música') {
+            if (!args) {
+                const selected = await askQuestions([
+                    {
+                        type: "input",
+                        name: "term",
+                        message: "Digite a música e artista"
+                    }
+                ])
+
+                await searchAndPlayContent(selected.term)
+            }
+            else {
+                await searchAndPlayContent(args)
+            }
+        }
+
+        if (action == 'pausar' || action == 'continuar') {
+            await pausePlay()
+        }
+
+        if (action == 'próxima') {
+            await skipMusic('next')
+        }
+
+        if (action == 'anterior') {
+            await skipMusic('previous')
+        }
+
+        if (action == 'aumentar_volume') {
+            await changeVolume('plus')
+        }
+
+        if (action == 'diminuir_volume') {
+            await changeVolume('minus')
+        }
+    }
+} 
 
 function closeApplication() {
     console.clear()
