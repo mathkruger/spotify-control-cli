@@ -22,7 +22,7 @@ Se for a primeira vez utilizando:
 - [x] ~~Melhorar interface do console~~
 - [x] ~~Criar bot na twitch pra trocar de música~~
 - [x] ~~Implementar modo de busca de música rápida~~
-- [x] Deixar comandos da twitch parametrizáveis
+- [ ] Deixar comandos da twitch parametrizáveis
 
 ## Roadmap pra quando eu estiver com vontade
 - [ ] Criar testes unitários (Jest)
