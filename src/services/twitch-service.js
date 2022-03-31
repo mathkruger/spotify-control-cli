@@ -25,21 +25,30 @@ function generateBotClient() {
 
         switch (message) {
             case commands.NEXT:
-                eventEmitter.emit(eventNames.COMMAND_RECEIVED, 'próxima')
+                eventEmitter.emit(eventNames.COMMAND_RECEIVED, { command: 'próxima' })
             break
 
             case commands.PREVIOUS:
-                eventEmitter.emit(eventNames.COMMAND_RECEIVED, 'anterior')
+                eventEmitter.emit(eventNames.COMMAND_RECEIVED, { command: 'anterior' })
             break
 
             default:
                 if (message.startsWith(commands.SONG)) {
                     const args = message.replace(commands.SONG, '').trim()
-                    eventEmitter.emit(eventNames.COMMAND_RECEIVED, 'trocar_de_música|' + args)
+                    if (args.length === 0) {
+                        await sendErrorMessage(client, 'ERRO: Você precisa mandar a música corretamente "música - artista"')
+                    }
+                    else {
+                        eventEmitter.emit(eventNames.COMMAND_RECEIVED, { command: 'trocar_de_música', args })
+                    }
                 }
             break
         }
     })
+}
+
+async function sendErrorMessage(client, message) {
+    return await client.raw(message)
 }
 
 export {

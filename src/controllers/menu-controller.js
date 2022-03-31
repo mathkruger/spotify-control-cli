@@ -43,10 +43,9 @@ async function initializeApplication(twitchBotMode = false) {
             
             generateBotClient()
 
-            eventEmitter.on(eventNames.COMMAND_RECEIVED, async (command) => {
-                drawText('Você recebeu o comando ' + command, 'green', 'bold')
-                const commandSplitted = command.includes('|') ? command.split('|') : [command]
-                await callSpotifyAction(commandSplitted[0], isLoggedIn, commandSplitted[1])
+            eventEmitter.on(eventNames.COMMAND_RECEIVED, async (ev) => {
+                drawText('Você recebeu o comando ' + ev.command, 'green', 'bold')
+                await callSpotifyAction(ev.command, isLoggedIn, ev.args)
             })
         }
         else {
